@@ -445,7 +445,7 @@ export default function Home() {
           left: 0;
           width: 100%;
           height: 100%;
-          background-size: cover;
+          background-size: cover; /* для десктопа оставляем cover */
           background-position: center;
           background-attachment: fixed;
           transition: background-image 1.5s ease-in-out;
@@ -460,6 +460,17 @@ export default function Home() {
           height: 100%;
           background: rgba(0, 0, 0, 0.4);
           z-index: -1;
+        }
+
+        /* На мобильных устройствах меняем режим на contain, чтобы фото было видно целиком */
+        @media (max-width: 768px) {
+          .bg-layer {
+            background-size: contain;  /* фото целиком, возможны полосы по бокам */
+            background-attachment: scroll; /* убираем тормоза */
+            /* если хотите оставить cover, замените contain на cover и настройте background-position */
+            /* background-size: cover; */
+            /* background-position: center; */
+          }
         }
 
         .main {
@@ -699,13 +710,7 @@ export default function Home() {
           transform: scale(1.1);
         }
 
-        /* Отключаем фиксацию фона на мобильных для плавности */
-        @media (max-width: 768px) {
-          .bg-layer {
-            background-attachment: scroll; /* Вместо fixed — убираем тормоза */
-          }
-        }
-
+        /* Дополнительные медиазапросы для текста */
         @media (max-width: 768px) {
           h2 { font-size: 2.5rem; }
           .timer-item { padding: 20px 25px; }
