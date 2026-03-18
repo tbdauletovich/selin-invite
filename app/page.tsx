@@ -699,6 +699,13 @@ export default function Home() {
           transform: scale(1.1);
         }
 
+        /* Отключаем фиксацию фона на мобильных для плавности */
+        @media (max-width: 768px) {
+          .bg-layer {
+            background-attachment: scroll; /* Вместо fixed — убираем тормоза */
+          }
+        }
+
         @media (max-width: 768px) {
           h2 { font-size: 2.5rem; }
           .timer-item { padding: 20px 25px; }
