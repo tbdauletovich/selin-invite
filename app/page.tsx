@@ -5,16 +5,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 
 // ===== НАСТРОЙКИ TELEGRAM =====
-// Важно: на Vercel эти переменные должны быть добавлены как NEXT_PUBLIC_...
 const TELEGRAM_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || "";
 
-// ===== ФОТО =====
-const photos = [
+// ===== ФОТО (С ЗАГЛАВНОЙ S) =====
+const photosDesktop = [
   "/Selin1.jpg", "/Selin2.jpg", "/Selin3.jpg", "/Selin4.jpg", "/Selin5.jpg",
   "/Selin6.jpg", "/Selin7.jpg", "/Selin8.jpg", "/Selin9.jpg", "/Selin10.jpg",
   "/Selin11.jpg", "/Selin12.jpg", "/Selin13.jpg", "/Selin14.jpg", "/Selin15.jpg",
   "/Selin16.jpg", "/Selin17.jpg",
+];
+
+const photosMobile = [
+  "/mobile/Selin1.jpg", "/mobile/Selin2.jpg", "/mobile/Selin3.jpg", "/mobile/Selin4.jpg", "/mobile/Selin5.jpg",
+  "/mobile/Selin6.jpg", "/mobile/Selin7.jpg", "/mobile/Selin8.jpg", "/mobile/Selin9.jpg", "/mobile/Selin10.jpg",
+  "/mobile/Selin11.jpg", "/mobile/Selin12.jpg", "/mobile/Selin13.jpg", "/mobile/Selin14.jpg", "/mobile/Selin15.jpg",
+  "/mobile/Selin16.jpg", "/mobile/Selin17.jpg",
 ];
 
 const eventDate = new Date("2026-04-01T18:00:00");
@@ -31,13 +37,17 @@ export default function Home() {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [windowWidth, setWindowWidth] = useState(0);
 
-  // Предзагрузка изображений
+  // Определяем, использовать ли мобильные фото
+  const isMobile = windowWidth < 768;
+  const photos = isMobile ? photosMobile : photosDesktop;
+
+  // Предзагрузка изображений (для текущего массива)
   useEffect(() => {
     photos.forEach((src) => {
       const img = new Image();
       img.src = src;
     });
-  }, []);
+  }, [photos]);
 
   // Инициализация аудио
   useEffect(() => {
@@ -55,9 +65,9 @@ export default function Home() {
       setBgIndex((prev) => (prev + 1) % photos.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [photos.length]);
 
-  // Таймер обратного отсчёта (исправлено!)
+  // Таймер обратного отсчёта
   useEffect(() => {
     const timer = setInterval(() => {
       const diff = eventDate.getTime() - Date.now();
@@ -148,7 +158,7 @@ export default function Home() {
     setMusicPlaying(!musicPlaying);
   };
 
-  // Адаптивные размеры
+  // Адаптивные размеры текста
   const getNameFontSize = () => {
     if (windowWidth > 768) return "25rem";
     if (windowWidth > 480) return "15rem";
