@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 
 // ===== НАСТРОЙКИ TELEGRAM =====
-const TELEGRAM_TOKEN = "8694211031:AAFTJygWIU_VGkL3wjiRtMJUIM6x9LsVdsI";
-const TELEGRAM_CHAT_ID = "1255417011";
+// Важно: на Vercel эти переменные должны быть добавлены как NEXT_PUBLIC_...
+const TELEGRAM_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_TOKEN || "";
+const TELEGRAM_CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || "";
 
 // ===== ФОТО =====
 const photos = [
@@ -19,22 +20,18 @@ const photos = [
 const eventDate = new Date("2026-04-01T18:00:00");
 
 export default function Home() {
-  // Состояния для двухслойного фона
-  const [layer1Index, setLayer1Index] = useState(0);
-  const [layer2Index, setLayer2Index] = useState(1);
-  const [showLayer1, setShowLayer1] = useState(true);
-
+  const [bgIndex, setBgIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
-  const [coming, setComing] = useState(null);
+  const [coming, setComing] = useState<null | boolean>(null);
   const [name, setName] = useState("");
   const [companion, setCompanion] = useState("");
   const [kids, setKids] = useState("");
   const [errors, setErrors] = useState({ name: false, companion: false, kids: false });
   const [musicPlaying, setMusicPlaying] = useState(false);
-  const [audio, setAudio] = useState(null);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [windowWidth, setWindowWidth] = useState(0);
 
-  // Предзагрузка всех изображений
+  // Предзагрузка изображений
   useEffect(() => {
     photos.forEach((src) => {
       const img = new Image();
@@ -44,18 +41,26 @@ export default function Home() {
 
   // Инициализация аудио
   useEffect(() => {
-    setAudio(new Audio("/music.mp3"));
+    const audioEl = new Audio("/music.mp3");
+    audioEl.loop = true;
+    setAudio(audioEl);
+    return () => {
+      audioEl.pause();
+    };
   }, []);
 
-  // Зацикливание музыки
+  // Смена фона каждые 5 секунд
   useEffect(() => {
-    if (audio) audio.loop = true;
-  }, [audio]);
+    const interval = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % photos.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // Таймер обратного отсчёта
+  // Таймер обратного отсчёта (исправлено!)
   useEffect(() => {
     const timer = setInterval(() => {
-      const diff = eventDate - new Date();
+      const diff = eventDate.getTime() - Date.now();
       if (diff <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0 });
         return;
@@ -77,40 +82,18 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Эффект смены фона с кроссфейдом
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Переключаем видимый слой
-      setShowLayer1(prev => !prev);
-
-      // Обновляем индексы: тот слой, который стал невидимым, получает следующее изображение
-      setLayer1Index(prev => {
-        if (showLayer1) {
-          // Сейчас layer1 видим, после переключения станет невидим. Обновляем его на следующее после layer2
-          return (layer2Index + 1) % photos.length;
-        }
-        return prev; // если layer1 невидим, его индекс не меняем (он обновится в другом месте)
-      });
-
-      setLayer2Index(prev => {
-        if (!showLayer1) {
-          // Сейчас layer2 видим, после переключения станет невидим. Обновляем его на следующее после layer1
-          return (layer1Index + 1) % photos.length;
-        }
-        return prev;
-      });
-    }, 5000); // каждые 5 секунд
-
-    return () => clearInterval(interval);
-  }, [layer1Index, layer2Index, showLayer1]); // зависимости для корректного захвата текущих значений
-
   // Функция отправки в Telegram
   const sendToTelegram = async (response: "Приду" | "Не приду") => {
+    if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.warn("Telegram token or chat ID missing");
+      return;
+    }
+
     const message = `
 Новый ответ на приглашение:
-👤 Имя: ${name.trim()}
-👥 Спутники: ${companion.trim()}
-👶 Дети: ${kids.trim()}
+👤 Имя: ${name.trim() || "не указано"}
+👥 Спутники: ${companion.trim() || "не указано"}
+👶 Дети: ${kids.trim() || "не указано"}
 📌 Ответ: ${response}
     `.trim();
 
@@ -157,12 +140,15 @@ export default function Home() {
 
   const toggleMusic = () => {
     if (!audio) return;
-    if (musicPlaying) audio.pause();
-    else audio.play().catch(() => {});
+    if (musicPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch(() => {});
+    }
     setMusicPlaying(!musicPlaying);
   };
 
-  // Адаптивные размеры текста
+  // Адаптивные размеры
   const getNameFontSize = () => {
     if (windowWidth > 768) return "25rem";
     if (windowWidth > 480) return "15rem";
@@ -181,21 +167,11 @@ export default function Home() {
 
   return (
     <>
-      {/* Два слоя для плавного переключения фона */}
       <div
         className="bg-layer"
         style={{
-          backgroundImage: `url(${photos[layer1Index]})`,
-          opacity: showLayer1 ? 1 : 0,
-          transition: 'opacity 1.5s ease-in-out',
-        }}
-      />
-      <div
-        className="bg-layer"
-        style={{
-          backgroundImage: `url(${photos[layer2Index]})`,
-          opacity: showLayer1 ? 0 : 1,
-          transition: 'opacity 1.5s ease-in-out',
+          backgroundImage: `url(${photos[bgIndex]})`,
+          transition: 'background-image 1.5s ease-in-out',
         }}
       />
       <div className="overlay" />
@@ -412,7 +388,6 @@ export default function Home() {
           {musicPlaying ? "🔊" : "🔇"}
         </button>
 
-        {/* Скрипт для карты 2ГИС (не трогаем) */}
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
@@ -463,8 +438,8 @@ export default function Home() {
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
+          transition: background-image 1.5s ease-in-out;
           z-index: -2;
-          will-change: opacity;
         }
 
         .overlay {
