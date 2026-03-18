@@ -1,0 +1,13 @@
+@font-face {
+  font-family: 'DisneyPark';
+  src: url('/fonts/DisneyPark.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'DisneyPark', serif;
+  margin: 0;
+  padding: 0;
+}
