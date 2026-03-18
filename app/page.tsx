@@ -11,10 +11,10 @@ const TELEGRAM_CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || "";
 
 // ===== ФОТО =====
 const photos = [
-  "/selin1.jpg", "/selin2.jpg", "/selin3.jpg", "/selin4.jpg", "/selin5.jpg",
-  "/selin6.jpg", "/selin7.jpg", "/selin8.jpg", "/selin9.jpg", "/selin10.jpg",
-  "/selin11.jpg", "/selin12.jpg", "/selin13.jpg", "/selin14.jpg", "/selin15.jpg",
-  "/selin16.jpg", "/selin17.jpg",
+  "/Selin1.jpg", "/Selin2.jpg", "/Selin3.jpg", "/Selin4.jpg", "/Selin5.jpg",
+  "/Selin6.jpg", "/Selin7.jpg", "/Selin8.jpg", "/Selin9.jpg", "/Selin10.jpg",
+  "/Selin11.jpg", "/Selin12.jpg", "/Selin13.jpg", "/Selin14.jpg", "/Selin15.jpg",
+  "/Selin16.jpg", "/Selin17.jpg",
 ];
 
 const eventDate = new Date("2026-04-01T18:00:00");
